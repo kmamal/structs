@@ -11,5 +11,23 @@
     "test": "./scripts/run-tests.sh",
     "update-exports": "./scripts/update-exports.sh"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@kmamal/testing": "^0.0.20",
+    "@kmamal/util": "^0.0.92"
+  },
+  "exports": {
+    "./doubly-linked-list": "./src/doubly-linked-list.js",
+    "./memory/flat-pool": "./src/memory/flat-pool.js",
+    "./memory/pool": "./src/memory/pool.js",
+    "./chunk-list": "./src/chunk-list.js",
+    "./maps/node-tree": "./src/maps/node-tree.js",
+    "./maps/leaf-tree": "./src/maps/leaf-tree.js",
+    "./maps/closed-hashtable": "./src/maps/closed-hashtable.js",
+    "./maps/open-hashtable": "./src/maps/open-hashtable.js",
+    "./maps/b-tree": "./src/maps/b-tree.js",
+    "./heap": "./src/heap.js",
+    "./tree": "./src/tree.js",
+    "./linked-list": "./src/linked-list.js"
+  }
 }
