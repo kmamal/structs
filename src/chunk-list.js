@@ -1,109 +1,127 @@
-const { startIndex } = require('../array/start-index')
-const { endIndex } = require('../array/end-index')
-const { binarySearchRight } = require('../array/search/binary')
-const { concat } = require('../array/concat')
-const B = require('buffer')
+const _ = require('@kmamal/util')
 
-class ChunkList {
+class AbstractChunkList {
 	constructor () {
 		this._chunks = []
-		this._chunk_limits = [ 0 ]
-		this._end_index = 0
-		this._start_index = 0
-
-		return new Proxy(this, {
-			get: (obj, prop) => {
-				const index = parseInt(prop, 10)
-				if (Number.isNaN(index)) { return obj[prop] }
-				return obj.at(index)
-			},
-		})
+		this._chunkBorders = [ 0 ]
+		this._startIndex = 0
+		this._endIndex = 0
 	}
 
-	get length () { return this._end_index - this._start_index }
+	get length () { return this._endIndex - this._startIndex }
 
-	push (chunk) {
+	_findLocation (_index) {
+		const index = _index + this._startIndex
+		if (false
+			|| index < this._startIndex
+			|| this._endIndex <= index
+		) { return undefined }
+
+		const chunkIndex = _.searching.binarySearchRight(this._chunkBorders, index) - 1
+		const chunkStart = this._chunkBorders[chunkIndex]
+		const indexInChunk = index - chunkStart
+
+		return { chunkIndex, indexInChunk }
+	}
+
+	at (_index) {
+		const index = _.atIndex(this.length, _index)
+		const location = this._findLocation(index)
+		return location && this._chunks[location.chunkIndex][location.indexInChunk]
+	}
+
+	pushChunk (chunk) {
 		this._chunks.push(chunk)
-		const next_limit = this._end_index + chunk.length
-		this._chunk_limits.push(next_limit)
-		this._end_index = next_limit
+		const chunkEnd = this._endIndex + chunk.length
+		this._chunkBorders.push(chunkEnd)
+		this._endIndex = chunkEnd
 	}
 
-	shift (num) {
+	shiftN (num) {
 		const shifted = this.slice(0, num)
 
-		this._start_index += shifted.length
+		this._startIndex += shifted.length
+
+		let didBordersChange = false
 		for (;;) {
-			if (this._chunk_limits.length === 1) { break }
-			const [ , next_end ] = this._chunk_limits
-			if (this._start_index < next_end) { break }
+			if (this._chunkBorders.length === 1) { break }
+			const nextEnd = this._chunkBorders[1]
+			if (this._startIndex < nextEnd) { break }
 			this._chunks.shift()
-			this._chunk_limits.shift()
+			this._chunkBorders.shift()
+			didBordersChange = true
+		}
+
+		if (didBordersChange) {
+			const firstBorder = this._chunkBorders[0]
+			this._chunkBorders[0] = 0
+			for (let i = 1; i < this._chunkBorders.length; i++) {
+				this._chunkBorders[i] -= firstBorder
+			}
+			this._startIndex -= firstBorder
+			this._endIndex -= firstBorder
 		}
 
 		return shifted
 	}
 
-	_findIndexes (_index) {
-		const index = _index + this._start_index
-		if (index < this._start_index || this._end_index <= index) { return undefined }
+	slice (start, end) {
+		const { length } = this
+		const first = _.startIndex(length, start)
+		const last = _.endIndex(length, end) - 1
+		if (first > last) { return this._getEmpty() }
 
-		const chunk_index = binarySearchRight(this._chunk_limits, index) - 1
-		const offset = this._chunk_limits[chunk_index]
-		const index_in_chunk = index - offset
+		const firstIndexes = this._findLocation(first)
+		const lastIndexes = this._findLocation(last)
 
-		return { chunk_index, index_in_chunk }
-	}
+		if (!firstIndexes || !lastIndexes) { return this._getEmpty() }
 
-	at (index) {
-		const { chunk_index, index_in_chunk } = this._findIndexes(index)
-		const chunk = this._chunks[chunk_index]
-		return chunk[index_in_chunk]
-	}
+		const numChunks = (lastIndexes.chunkIndex - firstIndexes.chunkIndex) + 1
 
-	_findSlices (first, last) {
-		const first_indexes = this._findIndexes(first)
-		const last_indexes = this._findIndexes(last)
-
-		if (!first_indexes || !last_indexes) { return [] }
-
-		const num_chunks = (last_indexes.chunk_index - first_indexes.chunk_index) + 1
-
-		if (num_chunks === 1) {
-			const chunk = this._chunks[first_indexes.chunk_index]
-			return [ chunk.slice(first_indexes.index_in_chunk, last_indexes.index_in_chunk + 1) ]
+		if (numChunks === 1) {
+			const chunk = this._chunks[firstIndexes.chunkIndex]
+			const slice = chunk.slice(firstIndexes.indexInChunk, lastIndexes.indexInChunk + 1)
+			return this._concat([ slice ])
 		}
 
-		const slices = Array.from({ length: num_chunks })
+		const slices = Array.from({ length: numChunks })
 
 		// Slice first chunk
-		const first_chunk = this._chunks[first_indexes.chunk_index]
-		slices[0] = first_chunk.slice(first_indexes.index_in_chunk)
+		const firstChunk = this._chunks[firstIndexes.chunkIndex]
+		slices[0] = firstChunk.slice(firstIndexes.indexInChunk)
 
 		// Use full intermediate ones
-		for (let i = 1; i < num_chunks - 1; i++) {
-			const chunk_index = i + first_indexes.chunk_index
-			slices[i] = this._chunks[chunk_index]
+		for (let i = 1; i < numChunks - 1; i++) {
+			const chunkIndex = i + firstIndexes.chunkIndex
+			slices[i] = this._chunks[chunkIndex]
 		}
 
 		// Slice last chunk
-		const last_chunk = this._chunks[last_indexes.chunk_index]
-		slices[num_chunks - 1] = last_chunk.slice(0, last_indexes.index_in_chunk + 1)
+		const lastChunk = this._chunks[lastIndexes.chunkIndex]
+		slices[numChunks - 1] = lastChunk.slice(0, lastIndexes.indexInChunk + 1)
 
-		return slices
-	}
-
-	slice (start, end) {
-		const { length } = this
-		const first = startIndex(length, start)
-		const last = endIndex(length, end) - 1
-		const slices = this._findSlices(first, last)
-		const [ slice ] = slices
-		return !slice ? []
-			: (typeof slices[0] === 'string' && slices.join(''))
-			|| (slices[0] instanceof B.Buffer && B.Buffer.concat(slices))
-			|| concat(slices)
+		return this._concat(slices)
 	}
 }
 
-module.exports = { ChunkList }
+class ArrayChunkList extends AbstractChunkList {
+	_getEmpty () { return [] }
+	_concat (slices) { return _.concat(slices) }
+}
+
+class BufferChunkList extends AbstractChunkList {
+	_getEmpty () { return Buffer.alloc(0) }
+	_concat (slices) { return Buffer.concat(slices) }
+}
+
+class StringChunkList extends AbstractChunkList {
+	_getEmpty () { return '' }
+	_concat (slices) { return slices.join('') }
+}
+
+module.exports = {
+	AbstractChunkList,
+	ArrayChunkList,
+	BufferChunkList,
+	StringChunkList,
+}

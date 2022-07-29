@@ -1,10 +1,9 @@
-const { getParent, getLeft, getRight } = require('@kmamal/util/array/tree/binary')
-const { sub } = require('@kmamal/util/operators')
+const _ = require('@kmamal/util')
 
 class Heap {
 	constructor (init = [], options = {}) {
 		this._array = Array.from(init, ([ prio, value ], index) => ({ prio, value, index }))
-		this._compare = options.compare || sub
+		this._compare = options.compare || _.sub
 		this._heapify()
 	}
 
@@ -43,7 +42,7 @@ class Heap {
 
 	_bubbleUp (entry) {
 		for (;;) {
-			const parent = this._array[getParent(entry.index)]
+			const parent = this._array[_.tree.binary.getParent(entry.index)]
 			if (!parent) { break }
 
 			if (this._compare(parent.prio, entry.prio) < 0) { break }
@@ -55,10 +54,10 @@ class Heap {
 	_bubbleDown (entry) {
 		for (;;) {
 			const { index } = entry
-			const leftChild = this._array[getLeft(index)]
+			const leftChild = this._array[_.tree.binary.getLeft(index)]
 			if (!leftChild) { break }
 
-			const rightChild = this._array[getRight(index)]
+			const rightChild = this._array[_.tree.binary.getRight(index)]
 			const minChild = !rightChild || this._compare(leftChild.prio, rightChild.prio) <= 0 ? leftChild : rightChild
 			if (this._compare(entry.prio, minChild.prio) < 0) { break }
 
@@ -76,7 +75,7 @@ class Heap {
 	}
 
 	_heapify () {
-		const first = getParent(this._array.length - 1)
+		const first = _.tree.binary.getParent(this._array.length - 1)
 		for (let i = first; i >= 0; i--) {
 			const entry = this._array[i]
 			this._bubbleDown(entry)

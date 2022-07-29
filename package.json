@@ -14,7 +14,7 @@
   "license": "MIT",
   "devDependencies": {
     "@kmamal/testing": "^0.0.20",
-    "@kmamal/util": "^0.0.92"
+    "@kmamal/util": "^0.1.6"
   },
   "exports": {
     "./doubly-linked-list": "./src/doubly-linked-list.js",

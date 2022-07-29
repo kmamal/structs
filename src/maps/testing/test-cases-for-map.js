@@ -2,10 +2,10 @@ const { test } = require('@kmamal/testing')
 const { rand } = require('@kmamal/util/random/rand')
 const { sortBy } = require('@kmamal/util/array/sort')
 
-const createTests = (name, constructor, args) => {
+const createTests = (name, constructor, args, testName = name) => {
 	const { [constructor]: M } = require(`../${name}`)
 
-	test(`structs.${name}`, (t) => {
+	test(`structs.${testName}`, (t) => {
 		const a = new M(...args)
 		const b = new Map()
 
@@ -34,9 +34,9 @@ const createTests = (name, constructor, args) => {
 				t.equal(a.get(key), b.get(key), { key })
 			}
 
-			const a_entries = sortBy([ ...a.entries() ], ([ key ]) => key)
-			const b_entries = sortBy([ ...b.entries() ], ([ key ]) => key)
-			t.equal(a_entries, b_entries)
+			const aEntries = sortBy([ ...a.entries() ], ([ key ]) => key)
+			const bEntries = sortBy([ ...b.entries() ], ([ key ]) => key)
+			t.equal(aEntries, bEntries)
 		}
 	})
 }
