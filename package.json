@@ -6,10 +6,9 @@
     "type": "git",
     "url": "git@github.com:kmamal/structs.git"
   },
-  "main": "src/index.js",
   "scripts": {
     "test": "./scripts/run-tests.sh",
-    "update-exports": "./scripts/update-exports.sh"
+    "update-exports": "node ./scripts/update-exports.mjs"
   },
   "license": "MIT",
   "devDependencies": {

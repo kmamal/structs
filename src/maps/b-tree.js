@@ -1,4 +1,4 @@
-const _ = require('@kmamal/util')
+const { binarySearchWith } = require('@kmamal/util/array/searching/binary')
 
 const getKey = (key) => key
 const getValue = (key, value) => value
@@ -20,7 +20,7 @@ class BTree {
 
 	has (key) { return this._has(this._root, key) }
 	_has (node, key) {
-		const index = _.searching.binarySearchWith(node.keys, key, this._fn)
+		const index = binarySearchWith(node.keys, key, this._fn)
 		return node.isLeaf
 			? this._fn(node.keys[index], key) === 0
 			: this._has(node.children[index], key)
@@ -28,7 +28,7 @@ class BTree {
 
 	get (key) { return this._get(this._root, key) }
 	_get (node, key) {
-		const index = _.searching.binarySearchWith(node.keys, key, this._fn)
+		const index = binarySearchWith(node.keys, key, this._fn)
 		return node.isLeaf
 			? this._fn(node.keys[index], key) === 0
 				? node.values[index]
@@ -38,7 +38,7 @@ class BTree {
 
 	set (key, value) { return this._set(this._root, key, value) }
 	_set (node, key, value) {
-		const index = _.searching.binarySearchWith(node.keys, key, this._fn)
+		const index = binarySearchWith(node.keys, key, this._fn)
 
 		if (node.isLeaf) {
 			if (this._fn(node.keys[index], key) === 0) {
@@ -104,7 +104,7 @@ class BTree {
 
 	delete (key) { return this._delete(this._root, null, undefined, key) }
 	_delete (node, parent, indexInParent, key) {
-		const index = _.searching.binarySearchWith(node.keys, key, this._fn)
+		const index = binarySearchWith(node.keys, key, this._fn)
 
 		if (node.isLeaf) {
 			if (this._fn(node.keys[index], key) !== 0) { return false }

@@ -1,4 +1,8 @@
-const _ = require('@kmamal/util')
+const { binarySearchRight } = require('@kmamal/util/array/searching/binary')
+const { concat } = require('@kmamal/util/array/concat')
+const { atIndex } = require('@kmamal/util/array/at')
+const { startIndex } = require('@kmamal/util/array/start-index')
+const { endIndex } = require('@kmamal/util/array/end-index')
 
 class AbstractChunkList {
 	constructor () {
@@ -17,7 +21,7 @@ class AbstractChunkList {
 			|| this._endIndex <= index
 		) { return undefined }
 
-		const chunkIndex = _.searching.binarySearchRight(this._chunkBorders, index) - 1
+		const chunkIndex = binarySearchRight(this._chunkBorders, index) - 1
 		const chunkStart = this._chunkBorders[chunkIndex]
 		const indexInChunk = index - chunkStart
 
@@ -25,7 +29,7 @@ class AbstractChunkList {
 	}
 
 	at (_index) {
-		const index = _.atIndex(this.length, _index)
+		const index = atIndex(this.length, _index)
 		const location = this._findLocation(index)
 		return location && this._chunks[location.chunkIndex][location.indexInChunk]
 	}
@@ -67,8 +71,8 @@ class AbstractChunkList {
 
 	slice (start, end) {
 		const { length } = this
-		const first = _.startIndex(length, start)
-		const last = _.endIndex(length, end) - 1
+		const first = startIndex(length, start)
+		const last = endIndex(length, end) - 1
 		if (first > last) { return this._getEmpty() }
 
 		const firstIndexes = this._findLocation(first)
@@ -106,7 +110,7 @@ class AbstractChunkList {
 
 class ArrayChunkList extends AbstractChunkList {
 	_getEmpty () { return [] }
-	_concat (slices) { return _.concat(slices) }
+	_concat (slices) { return concat(slices) }
 }
 
 class BufferChunkList extends AbstractChunkList {
