@@ -27,6 +27,7 @@
     "./maps/b-tree": "./src/maps/b-tree.js",
     "./heap": "./src/heap.js",
     "./tree": "./src/tree.js",
-    "./linked-list": "./src/linked-list.js"
+    "./linked-list": "./src/linked-list.js",
+    "./disjoint-set": "./src/disjoint-set.js"
   }
 }

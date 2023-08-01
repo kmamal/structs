@@ -15,7 +15,7 @@ const listEqualsArray = (t, list, array) => {
 	}
 }
 
-test("structs.linked-list", (t) => {
+test("structs.doubly-linked-list", (t) => {
 	const a = new DoublyLinkedList()
 	const b = []
 	listEqualsArray(t, a, b)
